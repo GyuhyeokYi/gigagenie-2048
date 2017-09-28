@@ -1,34 +1,145 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>2048</title>
+<meta charset="utf-8">
+<title>2048</title>
 
-  <link href="style/main.css" rel="stylesheet" type="text/css">
-  <link rel="shortcut icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
-  <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x1096.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone 5+ -->
-  <link rel="apple-touch-startup-image" href="meta/apple-touch-startup-image-640x920.png"  media="(device-width: 320px) and (device-height: 480px) and (-webkit-device-pixel-ratio: 2)"> <!-- iPhone, retina -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link href="style/main.css" rel="stylesheet" type="text/css">
+<link rel="shortcut icon" href="favicon.ico">
+<meta name="viewport" content="height=1080, width=1920, user-scalable=no" />
+<script type="text/javascript" src="https://svcapi.gigagenie.ai/sdk/v1.0/js/gigagenie.js"></script>
+<script type="text/javascript">
+//4.4.1 createNameSpace
+function createnamespace(){
+        var options={};
+        options.namespace="bestscore";
+        options.shareflag='N';
+        gigagenie.appdata.createNameSpace(options,function(result_cd,result_msg,extra){
+                if(result_cd===200){
+                        console.log("Namespace creation is success.");
+                        //alert("Namespace creation is success.\nresult_cd= "+result_cd+"\nresult_msg= "+result_msg);
+                } else{
+                        console.log("Namespace creation is fail.");
+                        //alert("Namespace creation is fail.\nresult_cd= "+result_cd+"\nresult_msg= "+result_msg);
+                }
+        });
+};
+function setkeydata(score){
+	var options={};
+	options.namespace='bestscore';
+	options.key='bestscore';
+	options.data=score;
+	gigagenie.appdata.setKeyData(options,function(result_cd,result_msg,extra){
+    		if(result_cd===200){
+			console.log(options.key);
+    		} else {
+			console.log("Error");
+		}
+	});
+}
+function getkeydata(){
+	var options={};
+	options.namespace='bestscore';
+	options.key='bestscore';
+	gigagenie.appdata.getKeyData(options,function(result_cd,result_msg,extra){
+    		if(result_cd===200){
+			console.log('getKeyData:'+extra.data);
+			document.getElementById('bestscore').innerHTML=extra.data;
+		} else document.getElementById('bestscore').innerHTML="0";
+	});
+}
+function updateBbb(bestScore){
+	console.log('updateBbb:'+bestScore);
+	setkeydata(bestScore);
+}
+function init(){
+                options={};
+                options.apikey=""; //apikey를 입력하세요
+                options.keytype="GBOXCOMM";
+                
+                gigagenie.init(options,function(result_cd,result_msg,extra){
+                        console.log("gigagenie.init - result_cd:"+result_cd);
+                        console.log("gigagenie.init - result_msg:"+result_msg);
+                        console.log("gigagenie.init - extra:"+JSON.stringify(extra));
+                        if(result_cd===200) {
+				apistatus=1;
+				createnamespace();
+				getkeydata();
+			}
+                });
+                
+}
+var map = {
+    38: 0, // Up
+    39: 1, // Right
+    40: 2, // Down
+    37: 3, // Left
+    75: 0, // Vim up
+    76: 1, // Vim right
+    74: 2, // Vim down
+    72: 3, // Vim left
+    87: 0, // W
+    68: 1, // D
+    83: 2, // S
+    65: 3  // A
+  };
 
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+gigagenie.voice.onVoiceText=function(result_cd,result_msg,extra){
+        console.log('DEBUG onVoiceText result_cd:'+result_cd+' result_msg:'+result_msg+' extra:'+JSON.stringify(extra));
+        if(result_cd===200) {
+		//alert(extra.voicetext);
+		var txt = extra.voicetext;
+		// 0: up, 1: right, 2: down, 3: left
+		if(txt ==='위로'){ 
+			console.log("위로");
+			gigagenie.util.keyDispatch('UP',function(result_cd,result_msg,extra){ });
+			//var mapped = map[38];
+		}
+		else if(txt === '아래로'){
+			console.log("아래로");
+			gigagenie.util.keyDispatch('DOWN',function(result_cd,result_msg,extra){ });
+                        //var mapped = map[40];
+		}
+		else if(txt === '왼쪽'){
+			console.log("왼쪽");
+			gigagenie.util.keyDispatch('LEFT',function(result_cd,result_msg,extra){ });
+                        //var mapped = map[37];
+		}
+		else if(txt === '오른쪽'){
+			console.log("오른쪽");
+			gigagenie.util.keyDispatch('RIGHT',function(result_cd,result_msg,extra){ });
+                        //var mapped = map[39];
+		}
+		else if(txt === '그만' || txt === '종료'){
+			gigagenie.voice.stopCVR({},null);
+			gigagenie.voice.svcFinished(options,function(result_cd,result_msg,extra){
+                        console.log("svcFinished");
+                        if(result_cd===200){
+                                console.log("service finish success");
+                //              alert("페이지를 종료합니다");
+                        };
+                	});
+		}	
+	}
+};
+
+</script>
+
 </head>
-<body>
+<body onload=init()>
   <div class="container">
     <div class="heading">
       <h1 class="title">2048</h1>
       <div class="scores-container">
         <div class="score-container">0</div>
-        <div class="best-container">0</div>
+        <div class="best-container" id="bestscore">0</div>
       </div>
     </div>
 
     <div class="above-game">
       <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
-      <a class="restart-button">New Game</a>
+      <!--a class="restart-button">New Game</a-->
+      <a class="restart-button">재시작:1번 키</a>
     </div>
 
     <div class="game-container">
@@ -36,7 +147,8 @@
         <p></p>
         <div class="lower">
 	        <a class="keep-playing-button">Keep going</a>
-          <a class="retry-button">Try again</a>
+          <!--a class="retry-button">Try again</a-->
+	  <a class="retry-button">재시작: 1번 키</a>
         </div>
       </div>
 
@@ -71,18 +183,6 @@
 
       </div>
     </div>
-
-    <p class="game-explanation">
-      <strong class="important">How to play:</strong> Use your <strong>arrow keys</strong> to move the tiles. When two tiles with the same number touch, they <strong>merge into one!</strong>
-    </p>
-    <hr>
-    <p>
-    <strong class="important">Note:</strong> This site is the official version of 2048. You can play it on your phone via <a href="http://git.io/2048">http://git.io/2048.</a> All other apps or sites are derivatives or fakes, and should be used with caution.
-    </p>
-    <hr>
-    <p>
-    Created by <a href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a> Based on <a href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">1024 by Veewo Studio</a> and conceptually similar to <a href="http://asherv.com/threes/" target="_blank">Threes by Asher Vollmer.</a>
-    </p>
   </div>
 
   <script src="js/bind_polyfill.js"></script>
