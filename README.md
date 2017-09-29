@@ -1,6 +1,8 @@
 # GiGA Genie 2048
 GiGA Genie 서비스SDK를 이용한 2048 게임입니다. 
 
+![2048](https://user-images.githubusercontent.com/32326946/31001833-9185505c-a521-11e7-918f-dde677fa4e08.png)
+
 ### 사용한 API
 Best Score를 appdata API로 구현했습니다.
 
